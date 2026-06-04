@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+
+# Build artifacts
+dist/
+out/
+release/
+
+# Bundled runtimes and generated local assets
+python-embed/
+output/
+temp_uploads/
+
+# Environment and secrets
+.env
+.env.*
+*.pem
+*.key
+id_rsa*
+id_ed25519*
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Local assistant/tool settings
+.claude/settings.local.json
+.spec-workflow/config.toml

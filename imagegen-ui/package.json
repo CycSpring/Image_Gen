@@ -1,0 +1,44 @@
+{
+  "name": "imagegen-ui",
+  "version": "1.0.0",
+  "description": "Desktop UI for imagegen.ps1",
+  "author": "春哥",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder",
+    "package": "electron-packager . ImageGenStudio --platform=win32 --arch=x64 --out=dist --overwrite"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^30.0.1",
+    "electron-builder": "^24.13.3",
+    "electron-packager": "^17.1.2"
+  },
+  "build": {
+    "appId": "com.springchen.imagegenstudio",
+    "productName": "ImageGenStudio",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        "portable",
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "package.json",
+      "src/**/*",
+      "scripts/**/*",
+      "python-embed/**/*"
+    ],
+    "asar": false
+  }
+}

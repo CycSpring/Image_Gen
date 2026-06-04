@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ImageGen Desktop Studio</title>
+  <link rel="stylesheet" href="index.css">
+  <!-- Google Fonts: Inter & Outfit for modern sleek typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body class="theme-dark">
+  <div class="app-container">
+    
+    <!-- Top Configuration Header -->
+    <header class="app-header">
+      <div class="logo-area">
+        <svg class="logo-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L2 22H22L12 2Z" stroke="url(#logo-grad)" stroke-width="2.5" stroke-linejoin="round" />
+          <path d="M12 8L5 20H19L12 8Z" fill="url(#logo-grad-fill)" />
+          <defs>
+            <linearGradient id="logo-grad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#a855f7" />
+              <stop offset="1" stop-color="#06b6d4" />
+            </linearGradient>
+            <linearGradient id="logo-grad-fill" x1="5" y1="8" x2="19" y2="20" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#a855f7" stop-opacity="0.3"/>
+              <stop offset="1" stop-color="#06b6d4" stop-opacity="0.3"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <h1>ImageGen <span>Studio</span></h1>
+        <button id="btn-header-policy" class="header-policy-btn" type="button" title="点击查看提示词安全规范" onclick="document.getElementById('policy-modal').style.display='flex'">💡 提示词规范</button>
+      </div>
+      
+      <!-- Key Parameters Overrides in Top Bar -->
+      <div class="header-credentials">
+        <div class="input-group-row">
+          <div class="header-field">
+            <label for="apikey-override">API Key</label>
+            <div class="password-wrapper">
+              <input type="password" id="apikey-override" placeholder="使用系统默认 Key (Env / auth.json)">
+              <button class="toggle-password" type="button" title="显示/隐藏">
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+          
+          <div class="header-field">
+            <label for="baseurl-override">Base URL</label>
+            <input type="text" id="baseurl-override" placeholder="使用系统默认 Base URL">
+          </div>
+          
+          <button id="btn-refresh-config" class="btn-secondary" title="刷新配置">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <div class="app-workspace">
+      
+      <!-- Left Config Sidebar -->
+      <aside class="app-sidebar">
+        <div class="sidebar-section-title">图像参数设置</div>
+        
+        <div class="sidebar-scrollable">
+          <!-- Parameter Cards -->
+          <div class="config-card">
+            <div class="field-control">
+              <label for="param-model">模型 (Model)</label>
+              <select id="param-model">
+                <option value="gpt-image-2" selected>gpt-image-2 (默认)</option>
+                <option value="gpt-image-1.5">gpt-image-1.5</option>
+                <option value="gpt-image-1">gpt-image-1</option>
+                <option value="gpt-image-1-mini">gpt-image-1-mini</option>
+              </select>
+            </div>
+
+            <div class="field-control-grid">
+              <div class="field-control">
+                <label for="param-size">尺寸 (Size)</label>
+                <select id="param-size">
+                  <option value="1024x1024" selected>1024x1024 (1:1)</option>
+                  <option value="1536x1024">1536x1024 (3:2)</option>
+                  <option value="1024x1536">1024x1536 (2:3)</option>
+                  <option value="2048x2048">2048x2048 (2K 1:1)</option>
+                  <option value="2048x1152">2048x1152 (2K 16:9)</option>
+                  <option value="1152x2048">1152x2048 (2K 9:16)</option>
+                  <option value="auto">auto (自动)</option>
+                </select>
+              </div>
+
+              <div class="field-control">
+                <label for="param-quality">质量 (Quality)</label>
+                <select id="param-quality">
+                  <option value="auto" selected>auto</option>
+                  <option value="low">low (速度快)</option>
+                  <option value="medium">medium</option>
+                  <option value="high">high (精细)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field-control-grid">
+              <div class="field-control">
+                <label for="param-background">背景 (Background)</label>
+                <select id="param-background">
+                  <option value="auto" selected>auto</option>
+                  <option value="transparent">transparent (透明)</option>
+                  <option value="opaque">opaque (不透明)</option>
+                </select>
+              </div>
+
+              <div class="field-control">
+                <label for="param-format">输出格式</label>
+                <select id="param-format">
+                  <option value="png" selected>PNG</option>
+                  <option value="jpeg">JPEG</option>
+                  <option value="webp">WebP</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field-control">
+              <div class="slider-label-row">
+                <label for="param-n">生成数量 (n)</label>
+                <span id="val-n">1</span>
+              </div>
+              <input type="range" id="param-n" min="1" max="10" value="1">
+            </div>
+
+            <div class="field-control" id="compression-control" style="opacity: 0.5; pointer-events: none;">
+              <div class="slider-label-row">
+                <label for="param-compression">压缩率 (Compression)</label>
+                <span id="val-compression">无 (PNG)</span>
+              </div>
+              <input type="range" id="param-compression" min="0" max="100" value="85" disabled>
+            </div>
+          </div>
+
+          <!-- Augmentation Card -->
+          <details class="advanced-details" open>
+            <summary class="advanced-summary">提示词高级扩写优化 (Augment Hints)</summary>
+            <div class="config-card augment-card">
+              <div class="field-control checkbox-row">
+                <input type="checkbox" id="param-augment" checked>
+                <label for="param-augment">启用提示词智能扩写 (--augment)</label>
+              </div>
+              
+              <div class="augment-fields-container" id="augment-fields">
+                <div class="field-control">
+                  <label for="hint-use-case">使用场景 (Use Case)</label>
+                  <input type="text" id="hint-use-case" placeholder="例如: web_hero, poster, icon">
+                </div>
+                <div class="field-control">
+                  <label for="hint-subject">主体 (Subject)</label>
+                  <input type="text" id="hint-subject" placeholder="例如: a sleek electric sports car">
+                </div>
+                <div class="field-control">
+                  <label for="hint-scene">场景/背景 (Scene/Background)</label>
+                  <input type="text" id="hint-scene" placeholder="例如: neon-lit rainy Tokyo street">
+                </div>
+                <div class="field-control">
+                  <label for="hint-style">艺术风格 (Style/Medium)</label>
+                  <input type="text" id="hint-style" placeholder="例如: cyberpunk, photographic, 3d render">
+                </div>
+                <div class="field-control">
+                  <label for="hint-composition">画面构图 (Composition)</label>
+                  <input type="text" id="hint-composition" placeholder="例如: dramatic low angle, close-up">
+                </div>
+                <div class="field-control">
+                  <label for="hint-lighting">光影色调 (Lighting/Mood)</label>
+                  <input type="text" id="hint-lighting" placeholder="例如: cinematic warm backlighting, moody">
+                </div>
+                <div class="field-control">
+                  <label for="hint-palette">色彩搭配 (Palette)</label>
+                  <input type="text" id="hint-palette" placeholder="例如: cool blue and vibrant pink accent">
+                </div>
+                <div class="field-control">
+                  <label for="hint-materials">材质纹理 (Materials)</label>
+                  <input type="text" id="hint-materials" placeholder="例如: carbon fiber, wet asphalt, glossy glass">
+                </div>
+                <div class="field-control">
+                  <label for="hint-text">画面内文字 (Text - 须精确拼写)</label>
+                  <input type="text" id="hint-text" placeholder="例如: FUTURE">
+                </div>
+                <div class="field-control">
+                  <label for="hint-constraints">其他约束 (Constraints)</label>
+                  <input type="text" id="hint-constraints" placeholder="例如: hyper-detailed, clean lines">
+                </div>
+                <div class="field-control">
+                  <label for="hint-negative">避开要素 (Negative/Avoid)</label>
+                  <input type="text" id="hint-negative" placeholder="例如: text, watermarks, blurry edges">
+                </div>
+              </div>
+            </div>
+          </details>
+
+          <!-- System Post Processing & Execution Flags -->
+          <details class="advanced-details">
+            <summary class="advanced-summary">系统与后处理设置</summary>
+            <div class="config-card">
+              <div class="field-control">
+                <label for="param-downscale">网页缩略图二选一 (Downscale Max Dim)</label>
+                <input type="number" id="param-downscale" placeholder="未设置 (不生成)">
+              </div>
+              <div class="field-control">
+                <label for="param-downscale-suffix">缩略图后缀</label>
+                <input type="text" id="param-downscale-suffix" value="-web">
+              </div>
+              <div class="field-control checkbox-row">
+                <input type="checkbox" id="param-dryrun">
+                <label for="param-dryrun">仅预览命令，不调用 API (--dry-run)</label>
+              </div>
+              <div class="field-control checkbox-row">
+                <input type="checkbox" id="param-force" checked>
+                <label for="param-force">强制覆盖已存在的文件 (--force)</label>
+              </div>
+            </div>
+          </details>
+        </div>
+      </aside>
+
+      <!-- Center & Right Panel -->
+      <main class="app-main">
+        
+        <!-- Tab Selector Header -->
+        <div class="tabs-nav">
+          <button class="tab-btn active" data-tab="tab-generate">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+            文生图 (Generate)
+          </button>
+          <button class="tab-btn" data-tab="tab-edit">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z"/></svg>
+            图生图/局部重绘 (Edit)
+          </button>
+          <button class="tab-btn" data-tab="tab-batch">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="11" y2="17"/></svg>
+            批量任务 (Batch)
+          </button>
+        </div>
+
+        <!-- Tab Contents Area -->
+        <div class="tabs-content">
+          
+          <!-- Tab 1: Generate -->
+          <div id="tab-generate" class="tab-pane active">
+            <div class="main-input-box">
+              <label for="prompt-generate">输入创意提示词 (Prompt)</label>
+              <textarea id="prompt-generate" placeholder="例如：一个极具未来科技感的宇宙飞船在繁星璀璨的太空中穿梭，充满赛博朋克霓虹光效..."></textarea>
+              
+              <!-- File Destination Field -->
+              <div class="file-path-selector">
+                <label for="out-generate">保存图片路径 (--out)</label>
+                <div class="file-path-input-row">
+                  <input type="text" id="out-generate" placeholder="默认: output/imagegen/output.png">
+                  <button id="btn-browse-generate" class="btn-secondary" type="button">浏览...</button>
+                </div>
+              </div>
+
+              <div class="action-bar">
+                <button id="btn-generate" class="btn-primary">
+                  <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                  开始生成图像
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 2: Edit -->
+          <div id="tab-edit" class="tab-pane">
+            <div class="edit-tab-container">
+              <div class="edit-canvas-column">
+                <div class="upload-dropzone" id="edit-dropzone">
+                  <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" stroke-width="1.5" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                  <p>拖拽或点击上传底图 (Required)</p>
+                  <span>仅支持 PNG / JPEG / WEBP 格式</span>
+                </div>
+                
+                <!-- Canvas Workspace (hidden until image loaded) -->
+                <div class="canvas-workspace" id="canvas-workspace" style="display: none;">
+                  <div class="canvas-toolbar">
+                    <button id="tool-brush" class="tool-btn active" title="画笔 (绘制重绘蒙版区域)">
+                      <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                      画笔 (Mask)
+                    </button>
+                    <button id="tool-eraser" class="tool-btn" title="橡皮擦">
+                      <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M20 20H7L3 16c-1-1-1-2 0-3l9-9c1-1 2-1 3 0l5 5c1 1 1 2 0 3l-5 5M12 11l4 4"/></svg>
+                      橡皮擦
+                    </button>
+                    <div class="brush-size-control">
+                      <span>尺寸:</span>
+                      <input type="range" id="brush-size" min="5" max="80" value="25">
+                      <span id="brush-size-val">25px</span>
+                    </div>
+                    <button id="btn-clear-mask" class="btn-danger-sm">重置蒙版</button>
+                    <button id="btn-change-image" class="btn-secondary-sm">更换图片</button>
+                  </div>
+                  
+                  <div class="canvas-container">
+                    <!-- Background Canvas to display source image, Paint Canvas for mask drawing -->
+                    <canvas id="bg-canvas"></canvas>
+                    <canvas id="paint-canvas"></canvas>
+                  </div>
+                </div>
+              </div>
+
+              <div class="edit-inputs-column">
+                <div class="field-control">
+                  <label for="prompt-edit">局部修改提示词 (Prompt)</label>
+                  <textarea id="prompt-edit" placeholder="描述你要在涂抹区域生成或修改什么内容..."></textarea>
+                </div>
+
+                <div class="field-control">
+                  <label for="param-fidelity">保持原图忠实度 (Fidelity)</label>
+                  <select id="param-fidelity">
+                    <option value="" selected>默认 (auto)</option>
+                    <option value="low">Low (允许较大幅度更改)</option>
+                    <option value="high">High (严格贴合原图材质)</option>
+                  </select>
+                </div>
+
+                <!-- Mask Override Upload (If user doesn't paint) -->
+                <div class="field-control" id="mask-upload-wrapper">
+                  <label>或者上传已有的黑白蒙版图片 (可选)</label>
+                  <div class="mask-file-row">
+                    <input type="text" id="mask-path-display" placeholder="未选择蒙版图片 (优先使用画布涂鸦)" readonly>
+                    <button id="btn-browse-mask" class="btn-secondary-sm" type="button">选择...</button>
+                    <button id="btn-clear-uploaded-mask" class="btn-danger-sm" type="button" style="display:none;">清除</button>
+                  </div>
+                </div>
+
+                <div class="file-path-selector">
+                  <label for="out-edit">保存图片路径 (--out)</label>
+                  <div class="file-path-input-row">
+                    <input type="text" id="out-edit" placeholder="默认: output/imagegen/output.png">
+                    <button id="btn-browse-edit-out" class="btn-secondary" type="button">浏览...</button>
+                  </div>
+                </div>
+
+                <button id="btn-edit" class="btn-primary w-100">
+                  <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                  执行局部修改
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 3: Batch -->
+          <div id="tab-batch" class="tab-pane">
+            <div class="batch-tab-container">
+              <div class="batch-left">
+                <div class="batch-mode-switch">
+                  <button id="mode-batch-text" class="mode-btn active">直接输入 JSONL 任务</button>
+                  <button id="mode-batch-file" class="mode-btn">读取本地 JSONL 文件</button>
+                </div>
+
+                <!-- Mode A: Textarea Editor -->
+                <div id="batch-editor-area" class="batch-input-view">
+                  <label for="batch-jsonl-text">粘贴 JSONL 任务内容 (每行一条任务 JSON 或纯文本提示词)</label>
+                  <textarea id="batch-jsonl-text" placeholder='例如：
+"一只戴着太空头盔的黄金猎犬"
+{"prompt": "未来主义的浮空摩托车", "size": "1536x1024", "quality": "high"}
+{"prompt": "赛博朋克全息投影猫咪", "out": "cat.png"}'></textarea>
+                </div>
+
+                <!-- Mode B: File selector -->
+                <div id="batch-file-area" class="batch-input-view" style="display: none;">
+                  <div class="file-path-selector">
+                    <label for="batch-file-path">选择 JSONL 文件路径</label>
+                    <div class="file-path-input-row">
+                      <input type="text" id="batch-file-path" placeholder="点击右侧浏览选择文件..." readonly>
+                      <button id="btn-browse-batch-file" class="btn-secondary" type="button">浏览...</button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Output Folder selection -->
+                <div class="file-path-selector mt-3">
+                  <label for="batch-out-dir">批量图像输出目录 (--out-dir) <span class="required-star">*</span></label>
+                  <div class="file-path-input-row">
+                    <input type="text" id="batch-out-dir" placeholder="必填，选择用于存放批量生成图片的文件夹">
+                    <button id="btn-browse-batch-dir" class="btn-secondary" type="button">浏览...</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="batch-right">
+                <div class="config-card">
+                  <div class="sidebar-section-title" style="padding-left: 0;">并发与重试设置</div>
+                  
+                  <div class="field-control">
+                    <div class="slider-label-row">
+                      <label for="batch-concurrency">并发限制 (Concurrency)</label>
+                      <span id="val-concurrency">5</span>
+                    </div>
+                    <input type="range" id="batch-concurrency" min="1" max="25" value="5">
+                  </div>
+
+                  <div class="field-control">
+                    <div class="slider-label-row">
+                      <label for="batch-attempts">最大重试次数</label>
+                      <span id="val-attempts">3</span>
+                    </div>
+                    <input type="range" id="batch-attempts" min="1" max="10" value="3">
+                  </div>
+
+                  <div class="field-control checkbox-row">
+                    <input type="checkbox" id="batch-failfast">
+                    <label for="batch-failfast">快速失败模式 (一有错误立即中断)</label>
+                  </div>
+                </div>
+
+                <button id="btn-batch-generate" class="btn-primary w-100 mt-3">
+                  <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="11" y2="17"/></svg>
+                  开始并发批量生成
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Terminal Console (Bottom) -->
+        <section class="app-console">
+          <div class="console-header">
+            <div class="console-title">
+              <span class="status-indicator idle" id="exec-status"></span>
+              <span>执行日志输出</span>
+              <span id="task-timer" class="task-timer"></span>
+            </div>
+            <div class="console-actions">
+              <button id="btn-cancel-task" class="console-btn-cancel" style="display:none;" title="取消当前任务">
+                <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                取消任务
+              </button>
+              <label class="toggle-switch">
+                <input type="checkbox" id="console-autoscroll" checked>
+                <span class="slider"></span>
+                <span class="label-text">自动滚动</span>
+              </label>
+              <button id="btn-clear-console" class="console-btn-text">清空</button>
+              <button id="btn-copy-console" class="console-btn-text">复制日志</button>
+            </div>
+          </div>
+          <div class="console-body" id="console-output">
+            <div class="console-line system-line">[System] 欢迎使用 ImageGen Desktop Studio。客户端已准备就绪。</div>
+          </div>
+        </section>
+
+      </main>
+
+      <!-- Right Panel: Image Gallery -->
+      <aside class="app-gallery">
+        <div class="sidebar-section-title">本次生成画廊</div>
+        <div class="gallery-scrollable" id="gallery-container">
+          <!-- Placeholder when empty -->
+          <div class="gallery-empty-state" id="gallery-empty">
+            <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="1.5" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <p>生成的图像将显示在此处</p>
+          </div>
+          <div class="gallery-grid" id="gallery-grid"></div>
+        </div>
+      </aside>
+
+    </div>
+
+    <!-- Image Lightbox Modal -->
+    <div class="lightbox" id="lightbox-modal" style="display: none;">
+      <button class="lightbox-close" id="btn-lightbox-close">&times;</button>
+      <button class="lightbox-nav prev" id="btn-lightbox-prev" title="上一张">&lt;</button>
+      <button class="lightbox-nav next" id="btn-lightbox-next" title="下一张">&gt;</button>
+      
+      <div class="lightbox-content">
+        <div class="lightbox-viewer">
+          <img id="lightbox-img" src="" alt="Zoomed view">
+        </div>
+        
+        <div class="lightbox-info">
+          <h3>图像详情</h3>
+          
+          <div class="info-scroller">
+            <div class="info-item">
+              <span class="info-label">生成提示词 (Prompt):</span>
+              <p class="info-value" id="info-prompt"></p>
+            </div>
+            
+            <div class="info-item-row-grid">
+              <div class="info-item">
+                <span class="info-label">模型 (Model):</span>
+                <span class="info-value" id="info-model">-</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">尺寸 (Size):</span>
+                <span class="info-value" id="info-size">-</span>
+              </div>
+            </div>
+            
+            <div class="info-item">
+              <span class="info-label">本地保存路径:</span>
+              <p class="info-value path-value" id="info-path"></p>
+            </div>
+          </div>
+          
+          <div class="lightbox-actions">
+            <button id="btn-open-image" class="btn-primary">
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              使用默认软件打开
+            </button>
+            <button id="btn-show-folder" class="btn-secondary">
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+              在文件夹中定位
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content Policy Modal -->
+    <div class="lightbox" id="policy-modal" style="display: none; z-index: 110;" onclick="if(event.target===this) this.style.display='none'">
+      <button class="lightbox-close" id="btn-policy-close" onclick="document.getElementById('policy-modal').style.display='none'">&times;</button>
+      
+      <div class="policy-modal-content" onclick="event.stopPropagation()">
+        <h3>💡 DALL-E 3 提示词内容安全规范</h3>
+        <div class="policy-modal-body">
+          <div class="policy-section">
+            <h4>🚫 严禁生成的敏感内容</h4>
+            <ul>
+              <li><strong>真实人物与名人</strong>：禁止生成真实人物、公职人员、明星、著名运动员等（例如：乔丹、科比、总统、知名演员）。</li>
+              <li><strong>暴力与武器</strong>：禁止描绘血腥、肢体冲突、自残、犯罪工具、杀伤性武器或残酷画面。</li>
+              <li><strong>色情与露骨</strong>：禁止生成裸体、性行为、过度暴露或暗示性强的画面。</li>
+              <li><strong>仇恨与歧视</strong>：严禁包含偏见、歧视、仇恨言论或仇恨组织标志的图像。</li>
+              <li><strong>违法行为</strong>：禁止展示违禁药品、毒品、黑客攻击、武器制造等违法危害行为。</li>
+              <li><strong>版权与品牌</strong>：尽量避免直接包含知名品牌商标或版权角色（例如：迪士尼形象、耐克勾标、乐高人偶）。</li>
+            </ul>
+            <div class="policy-tip">
+              <strong>💡 绕过安全提示小妙招：</strong><br>
+              当需要生成类似主题时，请使用<strong>抽象描述</strong>代替敏感人名或品牌。例如用“传奇篮球巨星”代替“乔丹”，用“经典红黄相间超级英雄”代替“钢铁侠”。
+            </div>
+          </div>
+        </div>
+        <div class="policy-modal-footer">
+          <button id="btn-policy-confirm" class="btn-primary" onclick="document.getElementById('policy-modal').style.display='none'">我已知晓</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  
+  <script>
+    // Bulletproof inline safety policy modal handler
+    window.addEventListener('DOMContentLoaded', () => {
+      const modal = document.getElementById('policy-modal');
+      if (window.api && window.api.onShowPolicyModal) {
+        window.api.onShowPolicyModal(() => {
+          if (modal) modal.style.display = 'flex';
+        });
+      }
+    });
+  </script>
+  <script src="index.js"></script>
+</body>
+</html>
