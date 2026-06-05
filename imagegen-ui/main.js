@@ -259,7 +259,7 @@ function setCustomMenu() {
               type: 'info',
               title: '关于',
               message: `ImageGen Studio v${app.getVersion()}`,
-              detail: '为 imagegen.ps1 打造的现代独立桌面客户端 GUI。由小奈设计开发。',
+              detail: '为 gpt-image-2 生图的桌面客户端 UI，由春哥 vibe coding。',
               buttons: ['确定']
             });
           }

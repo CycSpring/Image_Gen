@@ -28,7 +28,6 @@ const elements = {
   togglePasswordBtn: document.querySelector('.toggle-password'),
   baseUrlInput: document.getElementById('baseurl-override'),
   btnRefreshConfig: document.getElementById('btn-refresh-config'),
-  btnCheckUpdates: document.getElementById('btn-check-updates'),
   
   // Sidebar parameters
   paramModel: document.getElementById('param-model'),
@@ -163,7 +162,6 @@ window.addEventListener('DOMContentLoaded', async () => {
   initCanvasDrawing();
   initDropzone();
   initLightbox();
-  initUpdateControls();
   
   // Set default timestamped output paths
   updatePathsIfDefault();
@@ -225,28 +223,6 @@ async function refreshConfiguration() {
   } else {
     logError(`读取配置失败: ${res.error}`);
   }
-}
-
-function initUpdateControls() {
-  if (!elements.btnCheckUpdates) {
-    return;
-  }
-
-  elements.btnCheckUpdates.addEventListener('click', async () => {
-    elements.btnCheckUpdates.disabled = true;
-    try {
-      const res = await window.api.checkForUpdates();
-      if (res.success && res.status === 'current') {
-        logSystem('当前已经是最新版本。');
-      } else if (res.success && res.status === 'available') {
-        logSystem(`发现新版本 ${res.version}，正在准备下载。`);
-      } else if (!res.success) {
-        logError(`检查更新失败: ${res.error}`);
-      }
-    } finally {
-      elements.btnCheckUpdates.disabled = false;
-    }
-  });
 }
 
 function handleUpdateStatus(payload) {
