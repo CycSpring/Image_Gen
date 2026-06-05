@@ -21,8 +21,8 @@ ImageGen Studio 是一个面向 Windows 的桌面图像生成工具，基于 Ele
 
 请在 GitHub Releases 中下载：
 
-- `ImageGenStudio Setup 1.0.2.exe`：标准安装版，安装时可自定义安装路径。
-- `ImageGenStudio 1.0.2.exe`：绿色便携版，下载后直接运行。
+- `ImageGenStudio-Setup-1.0.3.exe`：标准安装版，安装时可自定义安装路径。
+- `ImageGenStudio-1.0.3.exe`：绿色便携版，下载后直接运行。
 
 ## 使用方法
 
