@@ -28,6 +28,7 @@ const elements = {
   togglePasswordBtn: document.querySelector('.toggle-password'),
   baseUrlInput: document.getElementById('baseurl-override'),
   btnRefreshConfig: document.getElementById('btn-refresh-config'),
+  btnCheckUpdates: document.getElementById('btn-check-updates'),
   
   // Sidebar parameters
   paramModel: document.getElementById('param-model'),
@@ -162,6 +163,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   initCanvasDrawing();
   initDropzone();
   initLightbox();
+  initUpdateControls();
   
   // Set default timestamped output paths
   updatePathsIfDefault();
@@ -194,6 +196,12 @@ window.addEventListener('DOMContentLoaded', async () => {
       openPolicyModal();
     });
   }
+
+  if (window.api && window.api.onUpdateStatus) {
+    window.api.onUpdateStatus((payload) => {
+      handleUpdateStatus(payload);
+    });
+  }
 });
 
 // Load config from PowerShell
@@ -216,6 +224,57 @@ async function refreshConfiguration() {
     }
   } else {
     logError(`读取配置失败: ${res.error}`);
+  }
+}
+
+function initUpdateControls() {
+  if (!elements.btnCheckUpdates) {
+    return;
+  }
+
+  elements.btnCheckUpdates.addEventListener('click', async () => {
+    elements.btnCheckUpdates.disabled = true;
+    try {
+      const res = await window.api.checkForUpdates();
+      if (res.success && res.status === 'current') {
+        logSystem('当前已经是最新版本。');
+      } else if (res.success && res.status === 'available') {
+        logSystem(`发现新版本 ${res.version}，正在准备下载。`);
+      } else if (!res.success) {
+        logError(`检查更新失败: ${res.error}`);
+      }
+    } finally {
+      elements.btnCheckUpdates.disabled = false;
+    }
+  });
+}
+
+function handleUpdateStatus(payload) {
+  if (!payload || !payload.state) {
+    return;
+  }
+
+  switch (payload.state) {
+    case 'checking':
+      logSystem('正在检查更新...');
+      break;
+    case 'available':
+      logSystem(`发现新版本 ${payload.version || ''}`.trim());
+      break;
+    case 'current':
+      logSystem(`当前已是最新版本${payload.version ? `：${payload.version}` : ''}`);
+      break;
+    case 'downloading':
+      logSystem(`正在下载更新${typeof payload.percent === 'number' ? `：${payload.percent}%` : ''}`);
+      break;
+    case 'downloaded':
+      logSystem(`更新已下载完成${payload.version ? `：${payload.version}` : ''}`);
+      break;
+    case 'error':
+      logError(`更新流程出错: ${payload.message || '未知错误'}`);
+      break;
+    default:
+      break;
   }
 }
 

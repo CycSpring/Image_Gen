@@ -9,7 +9,9 @@
     "dist": "electron-builder",
     "package": "electron-packager . ImageGenStudio --platform=win32 --arch=x64 --out=dist --overwrite"
   },
-  "dependencies": {},
+  "dependencies": {
+    "electron-updater": "^6.8.3"
+  },
   "devDependencies": {
     "electron": "^30.0.1",
     "electron-builder": "^24.13.3",
@@ -31,6 +33,13 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true
     },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "CycSpring",
+        "repo": "Image_Gen"
+      }
+    ],
     "files": [
       "main.js",
       "preload.js",

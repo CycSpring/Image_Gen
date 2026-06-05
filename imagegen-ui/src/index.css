@@ -162,6 +162,7 @@ input, select, textarea, button {
   display: flex;
   gap: 16px;
   align-items: flex-end;
+  flex-wrap: wrap;
 }
 .header-field {
   display: flex;
@@ -188,6 +189,13 @@ input, select, textarea, button {
 .header-field input:focus {
   border-color: var(--color-secondary);
   box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);
+}
+
+.header-credentials .btn-secondary {
+  height: 32px;
+  padding: 0 14px;
+  gap: 6px;
+  white-space: nowrap;
 }
 
 /* Password visibility wrapper */
@@ -547,6 +555,11 @@ input, select, textarea, button {
 .btn-secondary:hover {
   background: rgba(255, 255, 255, 0.12);
   border-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 /* Actions and Buttons */

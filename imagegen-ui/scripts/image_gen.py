@@ -245,6 +245,65 @@ def _print_request(payload: dict) -> None:
     print(json.dumps(payload, indent=2, sort_keys=True))
 
 
+def _serialize_result(result: Any) -> str:
+    try:
+        payload = result.model_dump(mode="json")
+    except Exception:
+        return str(result)
+
+    def scrub(value: Any) -> Any:
+        if isinstance(value, dict):
+            cleaned = {}
+            for key, child in value.items():
+                if key == "b64_json" and isinstance(child, str):
+                    cleaned[key] = "<base64 image omitted>"
+                else:
+                    cleaned[key] = scrub(child)
+            return cleaned
+        if isinstance(value, list):
+            return [scrub(child) for child in value]
+        return value
+
+    return json.dumps(scrub(payload), indent=2, ensure_ascii=False)
+
+
+def _result_error_message(result: Any) -> Optional[str]:
+    error = getattr(result, "error", None)
+    if not error:
+        return None
+
+    if isinstance(error, dict):
+        message = error.get("message")
+        err_type = error.get("type")
+        code = error.get("code")
+    else:
+        message = getattr(error, "message", None)
+        err_type = getattr(error, "type", None)
+        code = getattr(error, "code", None)
+
+    parts = [str(x) for x in (message, err_type, code) if x]
+    return " | ".join(parts) if parts else str(error)
+
+
+def _images_from_result(result: Any) -> List[str]:
+    data = getattr(result, "data", None)
+    if not data:
+        err_msg = _result_error_message(result)
+        if err_msg:
+            _die(f"Image API returned error: {err_msg}")
+        _die(f"Image API returned no image data. Raw result: {_serialize_result(result)}")
+
+    images: List[str] = []
+    for idx, item in enumerate(data, start=1):
+        image_b64 = getattr(item, "b64_json", None)
+        if image_b64 is None and isinstance(item, dict):
+            image_b64 = item.get("b64_json")
+        if not image_b64:
+            _die(f"Image API result item {idx} did not include b64_json: {item}")
+        images.append(image_b64)
+    return images
+
+
 def _decode_and_write(images: List[str], outputs: List[Path], force: bool) -> None:
     for idx, image_b64 in enumerate(images):
         if idx >= len(outputs):
@@ -607,7 +666,7 @@ async def _run_generate_batch(args: argparse.Namespace) -> int:
                 )
                 elapsed = time.time() - started
                 print(f"{job_label} completed in {elapsed:.1f}s", file=sys.stderr)
-            images = [item.b64_json for item in result.data]
+            images = _images_from_result(result)
             _decode_write_and_downscale(
                 images,
                 outputs,
@@ -689,7 +748,7 @@ def _generate(args: argparse.Namespace) -> None:
     elapsed = time.time() - started
     print(f"Generation completed in {elapsed:.1f}s.", file=sys.stderr)
 
-    images = [item.b64_json for item in result.data]
+    images = _images_from_result(result)
     _decode_write_and_downscale(
         images,
         output_paths,
@@ -768,7 +827,7 @@ def _edit(args: argparse.Namespace) -> None:
 
     elapsed = time.time() - started
     print(f"Edit completed in {elapsed:.1f}s.", file=sys.stderr)
-    images = [item.b64_json for item in result.data]
+    images = _images_from_result(result)
     _decode_write_and_downscale(
         images,
         output_paths,

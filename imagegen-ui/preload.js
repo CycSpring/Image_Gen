@@ -21,6 +21,14 @@ contextBridge.exposeInMainWorld('api', {
     ipcRenderer.on('menu-refresh-config', listener);
     return () => ipcRenderer.removeListener('menu-refresh-config', listener);
   },
+  checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
+  downloadAppUpdate: () => ipcRenderer.invoke('download-app-update'),
+  restartToUpdate: () => ipcRenderer.invoke('restart-to-update'),
+  onUpdateStatus: (callback) => {
+    const listener = (event, value) => callback(value);
+    ipcRenderer.on('update-status', listener);
+    return () => ipcRenderer.removeListener('update-status', listener);
+  },
   onShowPolicyModal: (callback) => {
     const listener = () => callback();
     ipcRenderer.on('menu-show-policy', listener);

@@ -1,10 +1,13 @@
 const { app, BrowserWindow, ipcMain, dialog, shell, Menu, nativeTheme } = require('electron');
+const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const { spawn } = require('child_process');
 const fs = require('fs');
 
 let mainWindow;
 let currentChild = null; // 当前运行的子进程引用，用于取消
+let updateCheckInFlight = false;
+let updateDownloadInFlight = false;
 const TASK_TIMEOUT_MS = 0; // 不设超时，仅手动取消
 const POWERSHELL_PATH = path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe');
 const STANDALONE_DEFAULT_CONFIG = {
@@ -29,6 +32,144 @@ function findImageGenPs1() {
     currentDir = parent;
   }
   return null;
+}
+
+function sendUpdateStatus(payload) {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('update-status', payload);
+  }
+}
+
+function setupAutoUpdate() {
+  if (!app.isPackaged) {
+    autoUpdater.forceDevUpdateConfig = true;
+  }
+
+  autoUpdater.autoDownload = false;
+  autoUpdater.autoInstallOnAppQuit = true;
+
+  autoUpdater.on('checking-for-update', () => {
+    sendUpdateStatus({ state: 'checking' });
+  });
+
+  autoUpdater.on('update-available', info => {
+    updateCheckInFlight = false;
+    sendUpdateStatus({ state: 'available', version: info.version });
+    dialog.showMessageBox(mainWindow, {
+      type: 'info',
+      title: '发现更新',
+      message: `发现新版本 ${info.version}`,
+      detail: '将从我们的 GitHub Release 下载更新包。下载完成后会提示你重启安装。',
+      buttons: ['立即下载', '稍后再说'],
+      defaultId: 0,
+      cancelId: 1
+    }).then(result => {
+      if (result.response === 0) {
+        downloadAppUpdate().catch(err => {
+          sendUpdateStatus({ state: 'error', message: err.message });
+        });
+      }
+    });
+  });
+
+  autoUpdater.on('update-not-available', info => {
+    updateCheckInFlight = false;
+    sendUpdateStatus({ state: 'current', version: info?.version || app.getVersion() });
+  });
+
+  autoUpdater.on('download-progress', progress => {
+    sendUpdateStatus({
+      state: 'downloading',
+      percent: Math.round(progress.percent),
+      transferred: progress.transferred,
+      total: progress.total
+    });
+  });
+
+  autoUpdater.on('update-downloaded', info => {
+    updateDownloadInFlight = false;
+    sendUpdateStatus({ state: 'downloaded', version: info.version });
+    dialog.showMessageBox(mainWindow, {
+      type: 'info',
+      title: '更新已下载',
+      message: `新版本 ${info.version} 已下载完成`,
+      detail: '点击重启后将自动安装更新。',
+      buttons: ['立即重启', '稍后重启'],
+      defaultId: 0,
+      cancelId: 1
+    }).then(result => {
+      if (result.response === 0) {
+        autoUpdater.quitAndInstall();
+      }
+    });
+  });
+
+  autoUpdater.on('error', err => {
+    updateCheckInFlight = false;
+    updateDownloadInFlight = false;
+    sendUpdateStatus({ state: 'error', message: err.message });
+  });
+}
+
+async function checkForAppUpdates(manual = false) {
+  if (updateCheckInFlight) {
+    return { success: false, error: '更新检查正在进行中' };
+  }
+
+  updateCheckInFlight = true;
+  sendUpdateStatus({ state: 'checking' });
+
+  try {
+    const result = await autoUpdater.checkForUpdates();
+    const version = result?.updateInfo?.version;
+    const isUpdateAvailable = result?.isUpdateAvailable === true;
+
+    if (isUpdateAvailable) {
+      return { success: true, status: 'available', version };
+    }
+
+    if (manual) {
+      await dialog.showMessageBox(mainWindow, {
+        type: 'info',
+        title: '检查更新',
+        message: '当前已经是最新版本',
+        buttons: ['确定']
+      });
+    }
+
+    return { success: true, status: 'current' };
+  } catch (err) {
+    if (manual) {
+      await dialog.showMessageBox(mainWindow, {
+        type: 'error',
+        title: '检查更新失败',
+        message: '无法检查更新',
+        detail: err.message,
+        buttons: ['确定']
+      });
+    }
+    sendUpdateStatus({ state: 'error', message: err.message });
+    return { success: false, error: err.message };
+  } finally {
+    updateCheckInFlight = false;
+  }
+}
+
+async function downloadAppUpdate() {
+  if (updateDownloadInFlight) {
+    return { success: false, error: '更新下载正在进行中' };
+  }
+
+  updateDownloadInFlight = true;
+  sendUpdateStatus({ state: 'downloading' });
+
+  try {
+    await autoUpdater.downloadUpdate();
+    return { success: true };
+  } catch (err) {
+    updateDownloadInFlight = false;
+    throw err;
+  }
 }
 
 function createWindow() {
@@ -122,6 +263,12 @@ function setCustomMenu() {
               buttons: ['确定']
             });
           }
+        },
+        {
+          label: '检查更新',
+          click: async () => {
+            await checkForAppUpdates(true);
+          }
         }
       ]
     }
@@ -133,6 +280,7 @@ function setCustomMenu() {
 
 app.whenReady().then(() => {
   nativeTheme.themeSource = 'dark';
+  setupAutoUpdate();
   createWindow();
   setCustomMenu();
 
@@ -142,6 +290,19 @@ app.whenReady().then(() => {
       setCustomMenu();
     }
   });
+});
+
+ipcMain.handle('check-for-updates', async () => {
+  return checkForAppUpdates(true);
+});
+
+ipcMain.handle('download-app-update', async () => {
+  return downloadAppUpdate();
+});
+
+ipcMain.handle('restart-to-update', async () => {
+  autoUpdater.quitAndInstall();
+  return { success: true };
 });
 
 app.on('window-all-closed', () => {

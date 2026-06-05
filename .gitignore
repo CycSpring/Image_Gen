@@ -34,3 +34,7 @@ Thumbs.db
 # Local assistant/tool settings
 .claude/settings.local.json
 .spec-workflow/config.toml
+
+# Local comparison workspace
+Image_Gen_change/
+imagegen-ui/scripts/__pycache__/
