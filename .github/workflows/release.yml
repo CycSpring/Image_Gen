@@ -85,3 +85,5 @@ jobs:
           foreach ($asset in $assets) {
             gh release upload $tag $asset.FullName --repo $repo --clobber
           }
+
+          gh release edit $tag --repo $repo --draft=false --latest
