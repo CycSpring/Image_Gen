@@ -2,9 +2,18 @@ name: Release
 
 on:
   push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/release.yml'
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to create or update, for example v1.0.2'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -33,5 +42,46 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build and publish
-        run: npm run dist -- --publish always
+      - name: Build installers
+        run: npm run dist -- --publish never
+
+      - name: Resolve release tag
+        id: release
+        shell: pwsh
+        run: |
+          $tag = "${{ github.event.inputs.tag }}"
+          if ([string]::IsNullOrWhiteSpace($tag)) {
+            if ("${{ github.ref_type }}" -eq "tag") {
+              $tag = "${{ github.ref_name }}"
+            } else {
+              $version = node -p "require('./package.json').version"
+              $tag = "v$version"
+            }
+          }
+          if (-not $tag.StartsWith("v")) {
+            $tag = "v$tag"
+          }
+          "tag=$tag" >> $env:GITHUB_OUTPUT
+
+      - name: Publish release assets
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $tag = "${{ steps.release.outputs.tag }}"
+          $repo = "${{ github.repository }}"
+          $assets = Get-ChildItem -Path dist -File |
+            Where-Object { $_.Name -match '\.(exe|yml|yaml|blockmap)$' }
+
+          if (-not $assets) {
+            throw "No release assets found in imagegen-ui/dist."
+          }
+
+          gh release view $tag --repo $repo *> $null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create $tag --repo $repo --title $tag --notes "ImageGenStudio $tag"
+          }
+
+          foreach ($asset in $assets) {
+            gh release upload $tag $asset.FullName --repo $repo --clobber
+          }
