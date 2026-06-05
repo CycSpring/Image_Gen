@@ -70,20 +70,37 @@ jobs:
         run: |
           $tag = "${{ steps.release.outputs.tag }}"
           $repo = "${{ github.repository }}"
-          $assets = Get-ChildItem -Path dist -File |
-            Where-Object { $_.Name -match '\.(exe|yml|yaml|blockmap)$' }
-
-          if (-not $assets) {
-            throw "No release assets found in imagegen-ui/dist."
-          }
+          $version = node -p "require('./package.json').version"
+          $assetNames = @(
+            "ImageGenStudio-$version.exe",
+            "ImageGenStudio-Setup-$version.exe",
+            "ImageGenStudio-Setup-$version.exe.blockmap",
+            "latest.yml"
+          )
 
           gh release view $tag --repo $repo *> $null
           if ($LASTEXITCODE -ne 0) {
             gh release create $tag --repo $repo --title $tag --notes "ImageGenStudio $tag"
           }
 
-          foreach ($asset in $assets) {
-            gh release upload $tag $asset.FullName --repo $repo --clobber
+          $existingAssets = gh release view $tag --repo $repo --json assets --jq '.assets[].name'
+          foreach ($assetName in $existingAssets) {
+            if ([string]::IsNullOrWhiteSpace($assetName)) {
+              continue
+            }
+            gh release delete-asset $tag $assetName --repo $repo --yes
+          }
+
+          Move-Item -LiteralPath "dist/ImageGenStudio $version.exe" -Destination "dist/ImageGenStudio-$version.exe" -Force
+          Move-Item -LiteralPath "dist/ImageGenStudio Setup $version.exe" -Destination "dist/ImageGenStudio-Setup-$version.exe" -Force
+          Move-Item -LiteralPath "dist/ImageGenStudio Setup $version.exe.blockmap" -Destination "dist/ImageGenStudio-Setup-$version.exe.blockmap" -Force
+
+          foreach ($assetName in $assetNames) {
+            $assetPath = Join-Path "dist" $assetName
+            if (-not (Test-Path -LiteralPath $assetPath -PathType Leaf)) {
+              throw "Missing release asset: $assetName"
+            }
+            gh release upload $tag $assetPath --repo $repo --clobber
           }
 
           gh release edit $tag --repo $repo --draft=false --latest
