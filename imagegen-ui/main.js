@@ -258,7 +258,7 @@ function setCustomMenu() {
             await dialog.showMessageBox(mainWindow, {
               type: 'info',
               title: '关于',
-              message: 'ImageGen Studio v1.0.0',
+              message: `ImageGen Studio v${app.getVersion()}`,
               detail: '为 imagegen.ps1 打造的现代独立桌面客户端 GUI。由小奈设计开发。',
               buttons: ['确定']
             });
