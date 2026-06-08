@@ -1,6 +1,6 @@
 {
   "name": "imagegen-ui",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Desktop UI for imagegen.ps1",
   "author": "春哥",
   "main": "main.js",
